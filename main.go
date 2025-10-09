@@ -503,7 +503,7 @@ func enrichWithVisitData(tabs []Tab, ageDays int) []Tab {
 	}
 
 	historyPath := filepath.Join(homeDir, "Library", "Safari", "History.db")
-	db, err := sql.Open("sqlite3", historyPath)
+	db, err := sql.Open("sqlite", historyPath)
 	if err != nil {
 		log.Printf("Warning: could not open Safari history: %v", err)
 		return tabs
