@@ -18,17 +18,18 @@ import (
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
+// Version is set via build flags: -ldflags "-X main.Version=v1.0.0"
+var Version = "dev"
+
 var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	duplicateStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("203"))
-	normalStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))
-	oldTabStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("214")) // Orange for old tabs
-	helpStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	titleStyle     = lipgloss.NewStyle().MarginLeft(2)
+	duplicateStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("203"))
+	normalStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))
+	oldTabStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("214")) // Orange for old tabs
+	helpStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 )
 
 type Tab struct {
@@ -111,16 +112,16 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type model struct {
-	list                  list.Model
-	tabs                  []Tab
-	quitting              bool
-	closing               bool
-	ageDays               int // Age threshold in days
-	progress              progress.Model
-	closingTotal          int
-	closingCurrent        int
-	closingDone           bool
-	message               string
+	list                   list.Model
+	tabs                   []Tab
+	quitting               bool
+	closing                bool
+	ageDays                int // Age threshold in days
+	progress               progress.Model
+	closingTotal           int
+	closingCurrent         int
+	closingDone            bool
+	message                string
 	emptyPinnedOnlyWindows []int // Windows that only contain pinned tabs
 }
 
@@ -314,7 +315,8 @@ func (m model) View() string {
 	}
 
 	header := titleStyle.Render(fmt.Sprintf(
-		"Safari Tab Manager - %d unique, %d duplicates, %d old (>%d days), %d selected to close",
+		"Safari Tab Manager %s - %d unique, %d duplicates, %d old (>%d days), %d selected to close",
+		Version,
 		uniqueCount,
 		duplicateCount,
 		oldCount,
@@ -760,11 +762,17 @@ func max(a, b int) int {
 	return b
 }
 
-
 func main() {
 	// Parse command-line flags
 	ageDays := flag.Int("age", 30, "Age threshold in days for highlighting old tabs")
+	version := flag.Bool("version", false, "Print version and exit")
 	flag.Parse()
+
+	// Handle version flag
+	if *version {
+		fmt.Printf("Safari Tab Manager %s\n", Version)
+		os.Exit(0)
+	}
 
 	// Validate age
 	if *ageDays < 1 {

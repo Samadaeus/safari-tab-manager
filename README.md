@@ -58,11 +58,15 @@ safari-tab-manager
 
 ### Command-line Options
 
+- **-version** - Print version information and exit
 - **-age N** - Set the age threshold in days for highlighting old tabs (default: 30)
 
-Example:
+Examples:
 
 ```bash
+# Print version
+./safari-tab-manager -version
+
 # Highlight tabs older than 60 days
 ./safari-tab-manager -age 60
 ```
@@ -189,4 +193,4 @@ And check the box for Safari.
 
 ## License
 
-MIT License - feel free to use and modify as needed.
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.

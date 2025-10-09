@@ -1,0 +1,66 @@
+# GoReleaser configuration
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: safari-tab-manager
+    binary: safari-tab-manager
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+
+universal_binaries:
+  - id: safari-tab-manager
+    ids:
+      - safari-tab-manager
+    name_template: safari-tab-manager
+    replace: false
+
+archives:
+  - id: safari-tab-manager
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else if eq .Arch "all" }}universal
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - 'typo'
+
+release:
+  github:
+    owner: bruth
+    name: safari-tab-manager
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## Safari Tab Manager {{ .Version }}
+
+    macOS tab management tool for Safari.
