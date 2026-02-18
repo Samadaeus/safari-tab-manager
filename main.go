@@ -23,6 +23,7 @@ import (
 
 // Version is set via build flags: -ldflags "-X main.Version=v1.0.0"
 var Version = "dev"
+var safariApp = "Safari" // Will be "Safari Technology Preview" if --preview flag is set
 
 var (
 	titleStyle     = lipgloss.NewStyle().MarginLeft(2)
@@ -381,10 +382,10 @@ func closeTabsAsync(tabsToClose []Tab, emptyWindows []int) tea.Cmd {
 		// Close tabs one by one
 		for idx, wt := range tabsToCloseNow {
 			applescript := fmt.Sprintf(`
-			tell application "Safari"
+			tell application "%s"
 				close tab %d of window %d
 			end tell
-			`, wt.tab, wt.window)
+			`, safariApp, wt.tab, wt.window)
 
 			cmd := exec.Command("osascript", "-e", applescript)
 			if err := cmd.Run(); err != nil {
@@ -400,10 +401,10 @@ func closeTabsAsync(tabsToClose []Tab, emptyWindows []int) tea.Cmd {
 		sort.Sort(sort.Reverse(sort.IntSlice(emptyWindows)))
 		for _, windowIdx := range emptyWindows {
 			applescript := fmt.Sprintf(`
-			tell application "Safari"
+			tell application "%s"
 				close window %d
 			end tell
-			`, windowIdx)
+			`, safariApp, windowIdx)
 
 			cmd := exec.Command("osascript", "-e", applescript)
 			if err := cmd.Run(); err != nil {
@@ -419,7 +420,9 @@ func refreshTabsCmd(ageDays int) tea.Cmd {
 	return func() tea.Msg {
 		tabs, emptyWindows, err := getSafariTabs(ageDays)
 		if err != nil {
-			log.Printf("Error refreshing tabs: %v", err)
+			log.Printf("
+
+Error refreshing tabs: %v", err)
 			return tabsRefreshedMsg{tabs: []Tab{}, emptyWindows: []int{}}
 		}
 
@@ -429,8 +432,8 @@ func refreshTabsCmd(ageDays int) tea.Cmd {
 }
 
 func getSafariTabsRaw() ([]Tab, error) {
-	applescript := `
-	tell application "Safari"
+	applescript := fmt.Sprintf(`
+	tell application "%s"
 		set output to ""
 		repeat with w from 1 to count of windows
 			repeat with t from 1 to count of tabs of window w
@@ -441,7 +444,7 @@ func getSafariTabsRaw() ([]Tab, error) {
 		end repeat
 		return output
 	end tell
-	`
+	`, safariApp)
 
 	cmd := exec.Command("osascript", "-e", applescript)
 	output, err := cmd.Output()
@@ -766,7 +769,13 @@ func main() {
 	// Parse command-line flags
 	ageDays := flag.Int("age", 30, "Age threshold in days for highlighting old tabs")
 	version := flag.Bool("version", false, "Print version and exit")
+	preview := flag.Bool("preview", false, "Use Safari Technology Preview instead of Safari")
 	flag.Parse()
+
+	// Set Safari application based on --preview flag
+	if *preview {
+		safariApp = "Safari Technology Preview"
+	}
 
 	// Handle version flag
 	if *version {
