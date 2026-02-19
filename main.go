@@ -420,9 +420,7 @@ func refreshTabsCmd(ageDays int) tea.Cmd {
 	return func() tea.Msg {
 		tabs, emptyWindows, err := getSafariTabs(ageDays)
 		if err != nil {
-			log.Printf("
-
-Error refreshing tabs: %v", err)
+			log.Printf("Error refreshing tabs: %v", err)
 			return tabsRefreshedMsg{tabs: []Tab{}, emptyWindows: []int{}}
 		}
 
